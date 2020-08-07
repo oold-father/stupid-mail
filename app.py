@@ -61,11 +61,10 @@ def main():
                        help='要发送的消息',
                        dest='message')
 
-    parser.add_argument('-f',
-                        '--filename',
-                        help='发送文件内容',
-                        required=False,
-                        dest='filename')
+    group.add_argument('-f',
+                       '--filename',
+                       help='发送文件内容',
+                       dest='filename')
 
     parser.add_argument('-v',
                         '--version',

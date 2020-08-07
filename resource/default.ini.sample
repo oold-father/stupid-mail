@@ -1,0 +1,8 @@
+[main]
+mail_host = smtp.qq.com
+mail_port1 = 465
+mail_port2 = 587
+mail_user = 1963855346@qq.com
+mail_pass =
+sender = 1963855346@qq.com
+receivers = 1963855346@qq.com

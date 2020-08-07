@@ -13,9 +13,8 @@ from config import Config
 
 CONFIG_DIR = PurePath(__file__).parent / 'resource'
 CONFIG_FILENAME = str(CONFIG_DIR / 'default.ini')
-LOG_CONFIG_FILENAME = str(CONFIG_DIR / 'log.ini')
 
 config = Config()
 HappyConfigParser.load(CONFIG_FILENAME, config)
 
-hlog = HappyLog.get_instance(LOG_CONFIG_FILENAME)
+hlog = HappyLog.get_instance()

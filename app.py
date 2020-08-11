@@ -8,6 +8,7 @@
 import argparse
 import smtplib
 from email.mime.text import MIMEText
+from pathlib import Path
 
 from common import config, hlog
 
@@ -50,7 +51,13 @@ def handler(parser_args):
     if parser_args.message:
         text = parser_args.message
     elif parser_args.filename:
-        with open(parser_args.filename, 'r', encoding='utf8') as file:
+        file = Path(parser_args.filename)
+        if not (file.exists() and file.is_file()):
+            file.exists() and file.is_file()
+            hlog.error('文件 %s 不存在' % parser_args.filename)
+            return
+
+        with file.open(mode='r', encoding='utf8') as file:
             file_text = file.read()
         text = parser_args.filename + '\n\n' + file_text
 

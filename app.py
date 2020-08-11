@@ -44,6 +44,24 @@ def send(title, text):
     smtpObj.quit()
 
 
+def handler(parser_args):
+
+    text = None
+    if parser_args.message:
+        text = parser_args.message
+    elif parser_args.filename:
+        with open(parser_args.filename, 'r', encoding='utf8') as file:
+            file_text = file.read()
+        text = parser_args.filename + '\n\n' + file_text
+
+    if parser_args.title:
+        title = parser_args.title
+    else:
+        title = '默认标题'
+
+    send(title, text)
+
+
 def main():
     parser = argparse.ArgumentParser(prog='stupid-mail-client',
                                      description='简单的邮件发送客户端',
@@ -55,7 +73,7 @@ def main():
                         required=False,
                         dest='title')
 
-    group = parser.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-m',
                        '--message',
                        help='要发送的消息',
@@ -74,20 +92,7 @@ def main():
 
     args = parser.parse_args()
 
-    text = None
-    if args.message:
-        text = args.message
-    elif args.filename:
-        with open(args.filename, 'r', encoding='utf8') as file:
-            file_text = file.read()
-        text = args.filename + '\n\n' + file_text
-
-    if args.title:
-        title = args.title
-    else:
-        title = '默认标题'
-
-    send(title, text)
+    handler(args)
 
 
 if __name__ == '__main__':

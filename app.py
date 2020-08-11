@@ -15,10 +15,12 @@ from pathlib import Path
 from common import config, hlog
 
 
-def send(title, text, att_map):
+def send(title, text, att_map=None, receivers=None, name=None):
+
+    name = name if name else config.sender
     message = MIMEMultipart()
     message['Subject'] = Header(title, 'utf-8')
-    message['From'] = Header(config.sender, 'utf-8')
+    message['From'] = Header(name, 'utf-8')
     message.attach(MIMEText(text, 'plain', 'utf-8'))
 
     smtpObj = smtplib.SMTP()
@@ -35,7 +37,9 @@ def send(title, text, att_map):
     hlog.info('login with %s:%s' % (config.mail_user, config.mail_pass))
     smtpObj.login(config.mail_user, config.mail_pass)
 
-    for receiver in config.receivers:
+    receivers = receivers if receivers else config.receivers
+
+    for receiver in receivers:
         message['To'] = Header(receiver, 'utf-8')
 
         for filename, file in att_map.items():
@@ -73,7 +77,7 @@ def handler(parser_args):
     if parser_args.message:
         text = parser_args.message
     elif parser_args.filename:
-        text = parser_args.filename + '\n\n' + read_file(parser_args.filename)
+        text = read_file(parser_args.filename)
 
     if parser_args.title:
         title = parser_args.title
@@ -87,7 +91,7 @@ def handler(parser_args):
             if att_file:
                 att_map.update({att: att_file})
 
-    send(title, text, att_map)
+    send(title, text, att_map, parser_args.receivers, parser_args.name)
 
 
 def main():
@@ -100,6 +104,12 @@ def main():
                         help='邮件标题',
                         required=False,
                         dest='title')
+
+    parser.add_argument('-n',
+                        '--name',
+                        help='发件人姓名',
+                        required=False,
+                        dest='name')
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-m',
@@ -118,6 +128,13 @@ def main():
                         nargs='+',
                         required=False,
                         dest='attachment')
+
+    parser.add_argument('-r',
+                        '--receivers',
+                        help='邮件接收者',
+                        nargs='+',
+                        required=False,
+                        dest='receivers')
 
     parser.add_argument('-v',
                         '--version',

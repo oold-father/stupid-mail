@@ -7,16 +7,19 @@
 # @Software: PyCharm
 import argparse
 import smtplib
+from email.header import Header
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
 
 from common import config, hlog
 
 
-def send(title, text):
-    message = MIMEText(text, 'plain', 'utf-8')
-    message['Subject'] = title
-    message['From'] = config.sender
+def send(title, text, att_map):
+    message = MIMEMultipart()
+    message['Subject'] = Header(title, 'utf-8')
+    message['From'] = Header(config.sender, 'utf-8')
+    message.attach(MIMEText(text, 'plain', 'utf-8'))
 
     smtpObj = smtplib.SMTP()
 
@@ -33,7 +36,13 @@ def send(title, text):
     smtpObj.login(config.mail_user, config.mail_pass)
 
     for receiver in config.receivers:
-        message['To'] = receiver
+        message['To'] = Header(receiver, 'utf-8')
+
+        for filename, file in att_map.items():
+            att = MIMEText(file, 'base64', 'utf-8')
+            att["Content-Type"] = 'application/octet-stream'
+            att["Content-Disposition"] = 'attachment; filename="%s"' % filename
+            message.attach(att)
 
         try:
             smtpObj.sendmail(
@@ -45,28 +54,40 @@ def send(title, text):
     smtpObj.quit()
 
 
+def read_file(filename):
+    file = Path(filename)
+    if not (file.exists() and file.is_file()):
+        file.exists() and file.is_file()
+        hlog.error('文件 %s 不存在' % filename)
+        return None
+
+    with file.open(mode='r', encoding='utf8') as file:
+        file_text = file.read()
+
+    return file_text
+
+
 def handler(parser_args):
 
     text = None
     if parser_args.message:
         text = parser_args.message
     elif parser_args.filename:
-        file = Path(parser_args.filename)
-        if not (file.exists() and file.is_file()):
-            file.exists() and file.is_file()
-            hlog.error('文件 %s 不存在' % parser_args.filename)
-            return
-
-        with file.open(mode='r', encoding='utf8') as file:
-            file_text = file.read()
-        text = parser_args.filename + '\n\n' + file_text
+        text = parser_args.filename + '\n\n' + read_file(parser_args.filename)
 
     if parser_args.title:
         title = parser_args.title
     else:
         title = '默认标题'
 
-    send(title, text)
+    att_map = {}
+    if parser_args.attachment:
+        for att in parser_args.attachment:
+            att_file = read_file(att)
+            if att_file:
+                att_map.update({att: att_file})
+
+    send(title, text, att_map)
 
 
 def main():
@@ -90,6 +111,13 @@ def main():
                        '--filename',
                        help='发送文件内容',
                        dest='filename')
+
+    parser.add_argument('-a',
+                        '--attachment',
+                        help='邮件附件',
+                        nargs='+',
+                        required=False,
+                        dest='attachment')
 
     parser.add_argument('-v',
                         '--version',

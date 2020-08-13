@@ -45,7 +45,7 @@ def send(title, text, att_map=None, receivers=None, name=None):
         for filename, file in att_map.items():
             att = MIMEText(file, 'base64', 'utf-8')
             att["Content-Type"] = 'application/octet-stream'
-            att["Content-Disposition"] = 'attachment; filename="%s"' % filename
+            att.add_header('Content-Disposition', 'attachment', filename=('gbk', '', filename))
             message.attach(att)
 
         try:
@@ -59,6 +59,7 @@ def send(title, text, att_map=None, receivers=None, name=None):
 
 
 def read_file(filename):
+    hlog.info('read file %s' % filename)
     file = Path(filename)
     if not (file.exists() and file.is_file()):
         file.exists() and file.is_file()

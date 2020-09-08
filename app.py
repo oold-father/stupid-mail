@@ -16,26 +16,25 @@ from common import config, hlog
 
 
 def send(title, text, att_map=None, receivers=None, name=None):
-
     name = name if name else config.sender
     message = MIMEMultipart()
     message['Subject'] = Header(title, 'utf-8')
     message['From'] = Header(name, 'utf-8')
     message.attach(MIMEText(text, 'plain', 'utf-8'))
 
-    smtpObj = smtplib.SMTP()
+    smtp_obj = smtplib.SMTP()
 
     try:
         hlog.info('connect to %s:%s' % (config.mail_host, config.mail_port1))
-        smtpObj.connect(config.mail_host, config.mail_port1)
+        smtp_obj.connect(config.mail_host, config.mail_port1)
     except smtplib.SMTPServerDisconnected as e:
         hlog.info(e)
         hlog.info('try another port')
         hlog.info('connect to %s:%s' % (config.mail_host, config.mail_port2))
-        smtpObj.connect(config.mail_host, config.mail_port2)
+        smtp_obj.connect(config.mail_host, config.mail_port2)
 
     hlog.info('login with %s:%s' % (config.mail_user, config.mail_pass))
-    smtpObj.login(config.mail_user, config.mail_pass)
+    smtp_obj.login(config.mail_user, config.mail_pass)
 
     receivers = receivers if receivers else config.receivers
 
@@ -49,13 +48,13 @@ def send(title, text, att_map=None, receivers=None, name=None):
             message.attach(att)
 
         try:
-            smtpObj.sendmail(
+            smtp_obj.sendmail(
                 config.sender, receiver, message.as_string())
             hlog.info('send success')
         except smtplib.SMTPException as e:
             hlog.error(e)
 
-    smtpObj.quit()
+    smtp_obj.quit()
 
 
 def read_file(filename):
@@ -73,7 +72,6 @@ def read_file(filename):
 
 
 def handler(parser_args):
-
     text = None
     if parser_args.message:
         text = parser_args.message

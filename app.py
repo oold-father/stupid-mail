@@ -66,7 +66,7 @@ def read_file(filename):
         hlog.error('文件 %s 不存在' % filename)
         return None
 
-    with file.open(mode='r', encoding='utf8') as file:
+    with file.open(mode='rb') as file:
         file_text = file.read()
 
     return file_text
